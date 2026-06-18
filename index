@@ -1100,14 +1100,15 @@ function computeBalances(employee) {
     for (let d = 1; d <= dim; d++) {
       const ds = `${m}-${String(d).padStart(2,'0')}`;
       const s = employee.leaves[ds];
-      if (s === 'CL') tCL += 1; else if (s === 'CL-half') tCL += 0.5;
-      else if (s === 'SL') tSL += 1; else if (s === 'SL-half') tSL += 0.5;
-      else if (s === 'EL') tEL += 1; else if (s === 'EL-half') tEL += 0.5;
+      if (s === 'CL' || s === 'CL-half') tCL += 0.5;
+      else if (s === 'SL' || s === 'SL-half') tSL += 0.5;
+      else if (s === 'EL') tEL += 1.0;
+      else if (s === 'EL-half') tEL += 0.5;
     }
     const opCL = carryCL, opSL = carrySL, opEL = carryEL;
     const opMoCL = carryMoCL + mCL, opMoSL = carryMoSL + mSL, opMoEL = carryMoEL + mEL;
-    const clCL = opCL - tCL*0.5, clSL = opSL - tSL*0.5, clEL = opEL - tEL*1.5;
-    const clMoCL = opMoCL - tCL*0.5, clMoSL = opMoSL - tSL*0.5, clMoEL = opMoEL - tEL*1.5;
+    const clCL = opCL - tCL, clSL = opSL - tSL, clEL = opEL - tEL;
+    const clMoCL = opMoCL - tCL, clMoSL = opMoSL - tSL, clMoEL = opMoEL - tEL;
     computed[m] = {
       opening:{CL:opCL,SL:opSL,EL:opEL}, openingMo:{CL:opMoCL,SL:opMoSL,EL:opMoEL},
       taken:{CL:tCL,SL:tSL,EL:tEL},
