@@ -1147,7 +1147,7 @@ function openCellMenu(event, employeeId, dateStr) {
   if (window.innerWidth - rect.left < mW) left = window.scrollX + rect.right - mW;
   menu.style.top = `${top}px`; menu.style.left = `${left}px`;
 }
-function isDateWeekend(dateStr) { const d = new Date(dateStr); return d.getDay() === 0 || d.getDay() === 6; }
+function isDateWeekend(dateStr) { const d = new Date(dateStr); return d.getDay() === 0; }
 async function setCellStatus(status) {
   if (!activeCellCoordinates) return;
   const { employeeId, dateStr } = activeCellCoordinates;
@@ -1283,7 +1283,7 @@ function renderApp() {
     `;
     for (let day = 1; day <= daysInMonth; day++) {
       const dObj = new Date(year, month-1, day);
-      const isWk = dObj.getDay() === 0 || dObj.getDay() === 6;
+      const isWk = dObj.getDay() === 0;
       const dl = dObj.toLocaleString('en-US',{weekday:'short'}).charAt(0);
       headerRow.innerHTML += `<th class="text-center w-8 min-w-[32px] border-r border-slate-200/80 text-[9px] py-1 ${isWk?'bg-slate-200 text-slate-700 font-bold':''}"><div class="font-bold text-slate-700">${day}</div><div class="text-[8px] opacity-70">${dl}</div></th>`;
     }
@@ -1319,7 +1319,7 @@ function renderApp() {
       for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${currentYearMonth}-${String(day).padStart(2,'0')}`;
         const dObj = new Date(year, month-1, day);
-        const isWk = dObj.getDay() === 0 || dObj.getDay() === 6;
+        const isWk = dObj.getDay() === 0;
         let cellVal = emp.leaves[dateStr] || (isWk ? 'W' : 'P');
         const cs = getCellStyle(cellVal);
         const disp = getCellDisplay(cellVal);

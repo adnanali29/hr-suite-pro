@@ -350,7 +350,7 @@ app.post('/api/leaves/book', async (req, res) => {
       const ds = curr.toISOString().split('T')[0];
       if (ds >= "2026-04-01" && ds <= "2027-03-31") {
         const dow = curr.getDay();
-        emp.leaves[ds] = (dow === 0 || dow === 6) ? 'W' : (duration === 'half' ? `${type}-half` : type);
+        emp.leaves[ds] = (dow === 0) ? 'W' : (duration === 'half' ? `${type}-half` : type);
       }
       curr.setDate(curr.getDate() + 1);
     }
@@ -365,7 +365,7 @@ app.post('/api/leaves/book', async (req, res) => {
       const ds = curr.toISOString().split('T')[0];
       if (ds >= "2026-04-01" && ds <= "2027-03-31") {
         const dow = curr.getDay();
-        const finalStatus = (dow === 0 || dow === 6) ? 'W' : (duration === 'half' ? `${type}-half` : type);
+        const finalStatus = (dow === 0) ? 'W' : (duration === 'half' ? `${type}-half` : type);
 
         await client.query(
           `INSERT INTO leaves (employee_id, date, status)
