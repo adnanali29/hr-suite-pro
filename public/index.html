@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HR Suite - HempCann Leave & Attendance Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .drawer-transition { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .sticky-col { position: sticky; left: 0; z-index: 10; background-color: white; }
+    .modal-enter { animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+    input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { opacity: 1; }
+  </style>
+</head>
+<body class="bg-slate-50/50 text-slate-800 min-h-screen flex flex-col overflow-x-hidden">
+
+<!-- ========== LOGIN PAGE ========== -->
+<div id="login-page" class="fixed inset-0 z-[100] bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden modal-enter">
+    <!-- Login Header -->
+    <div class="bg-gradient-to-r from-slate-900 to-emerald-900 p-8 text-center">
+      <div class="inline-flex p-3 bg-emerald-600/20 rounded-2xl mb-4">
+        <i class="fa-solid fa-cubes-stacked text-3xl text-emerald-400"></i>
+      </div>
+      <h1 class="text-xl font-extrabold text-white tracking-tight">HR Suite Pro</h1>
+      <p class="text-emerald-300 text-xs mt-1 font-medium">HempCann Leave & Attendance System</p>
+    </div>
+
+    <!-- Login Form -->
+    <div class="p-8">
+      <div id="login-error" class="hidden mb-4 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold px-4 py-3 rounded-lg flex items-center gap-2">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span id="login-error-msg">Invalid credentials</span>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Email Address</label>
+          <div class="relative">
+            <i class="fa-solid fa-envelope absolute left-3 top-3 text-slate-400 text-sm"></i>
+            <input type="email" id="login-email" value="Hr@hempcann.in" placeholder="Hr@hempcann.in"
+              class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-400 text-sm"></i>
+            <input type="password" id="login-password" placeholder="Enter your password"
+              class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
+            <button onclick="toggleLoginPwd()" class="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
+              <i id="pwd-eye-icon" class="fa-solid fa-eye text-sm"></i>
+            </button>
+          </div>
+        </div>
+        <button onclick="handleLogin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-lg transition-all shadow-md shadow-emerald-900/20 mt-2">
+          Sign In to HR Suite
+        </button>
+      </div>
+
+      <p class="text-center text-[11px] text-slate-400 mt-6">© 2026–2027 HempCann HR Administration</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MAIN APP (hidden until login) ========== -->
+<div id="main-app" class="hidden flex-col min-h-screen">
+
+  <!-- Header Banner -->
+  <header class="bg-slate-900 text-white shadow-sm border-b border-slate-800">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center space-x-3.5">
+        <div class="p-2.5 bg-gradient-to-tr from-emerald-600 to-teal-500 rounded-xl text-white shadow-md shadow-emerald-900/20">
+          <i class="fa-solid fa-cubes-stacked text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">HR Suite Pro</h1>
+          <p class="text-[11px] text-slate-400 font-medium">HempCann Leave & Attendance System (FY 2026–2027)</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="openDrawer('booker')" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-semibold transition-all border border-slate-700/50 flex items-center gap-1.5">
+          <i class="fa-solid fa-calendar-day text-emerald-400"></i> Book Leave
+        </button>
+        <button onclick="openDrawer('quota')" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-semibold transition-all border border-slate-700/50 flex items-center gap-1.5">
+          <i class="fa-solid fa-sliders text-sky-400"></i> Quota Settings
+        </button>
+        <button onclick="openAddEmployeeModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-all shadow-md shadow-emerald-900/10 flex items-center gap-1.5">
+          <i class="fa-solid fa-plus"></i> Add Employee
+        </button>
+        <div class="w-px h-6 bg-slate-800 mx-1"></div>
+        <button onclick="exportToCSV()" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-emerald-400 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 border border-slate-800">
+          <i class="fa-solid fa-file-csv"></i> CSV
+        </button>
+        <button onclick="openSystemSettings()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-semibold transition-all border border-slate-700/50 flex items-center gap-1.5">
+          <i class="fa-solid fa-gear text-violet-400"></i> Settings
+        </button>
+        <button onclick="handleLogout()" class="px-3.5 py-2 bg-slate-800 hover:bg-red-900 text-slate-400 hover:text-red-300 rounded-lg text-xs font-semibold transition-all border border-slate-700/50 flex items-center gap-1.5">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Month Slider / Timeline Bar -->
+  <section class="bg-white border-b border-slate-200/80 shadow-sm py-4 px-4 sm:px-6">
+    <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex flex-col">
+        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Active Timeline View</span>
+        <span class="text-base font-extrabold text-slate-800" id="current-month-display">April 2026</span>
+      </div>
+      <div class="flex-grow max-w-2xl w-full flex flex-col items-stretch px-2 sm:px-6">
+        <input type="range" id="timeline-slider" min="0" max="11" value="0" oninput="syncSliderToMonth(this.value)" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 mb-2.5">
+        <div class="flex justify-between text-[10px] font-bold text-slate-400 select-none">
+          <span onclick="setMonthByIndex(0)" class="cursor-pointer hover:text-slate-800 transition-colors month-pill px-2 py-0.5 rounded-full" id="pill-0">Apr '26</span>
+          <span onclick="setMonthByIndex(1)" class="cursor-pointer hover:text-slate-800 transition-colors month-pill px-2 py-0.5 rounded-full" id="pill-1">May</span>
+          <span onclick="setMonthByIndex(2)" class="cursor-pointer hover:text-slate-800 transition-colors month-pill px-2 py-0.5 rounded-full" id="pill-2">Jun</span>
+          <span onclick="setMonthByIndex(3)" class="cursor-pointer hover:text-slate-800 transition-colors month-pill px-2 py-0.5 rounded-full" id="pill-3">Jul</span>
+          <span onclick="setMonthByIndex(4)" class="cursor-pointer hover:text-slate-800 transition-colors month-pill px-2 py-0.5 rounded-full" id="pill-4">Aug</span>
+          <span onclick="setMonthByIndex(5)" class="cursor-pointer hover:text-slate-800 transition-colors month-pill px-2 py-0.5 rounded-full" id="pill-5">Sep</span>
+          <span onclick="setMonthByIndex(6)" class="cursor-pointer hover:text-slate-800 transition-colors month-pill px-2 py-0.5 rounded-full" id="pill-6">Oct</span>
+          <span onclick="setMonthByIndex(7)" class="cursor-pointer hover:text-slate-800 transition-colors month-pill px-2 py-0.5 rounded-full" id="pill-7">Nov</span>
+          <span onclick="setMonthByIndex(8)" class="cursor-pointer hover:text-slate-800 transition-colors month-pill px-2 py-0.5 rounded-full" id="pill-8">Dec</span>
+          <span onclick="setMonthByIndex(9)" class="cursor-pointer hover:text-slate-800 transition-colors month-pill px-2 py-0.5 rounded-full" id="pill-9">Jan '27</span>
+          <span onclick="setMonthByIndex(10)" class="cursor-pointer hover:text-slate-800 transition-colors month-pill px-2 py-0.5 rounded-full" id="pill-10">Feb</span>
+          <span onclick="setMonthByIndex(11)" class="cursor-pointer hover:text-slate-800 transition-colors month-pill px-2 py-0.5 rounded-full" id="pill-11">Mar</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 w-full md:w-auto">
+        <div class="relative flex-grow sm:flex-grow-0">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+          <input type="text" id="search-input" onkeyup="handleSearch(this.value)" placeholder="Search employee..." class="w-full sm:w-44 bg-slate-50 border border-slate-200/80 rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
+        </div>
+        <select id="filter-dept" onchange="handleDeptFilter(this.value)" class="bg-slate-50 border border-slate-200/80 rounded-lg py-1.5 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-semibold text-slate-600">
+          <option value="All">All Departments</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- App Shell -->
+  <div class="flex-grow max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6 flex flex-col gap-6">
+
+    <!-- Tab Headers -->
+    <div class="flex space-x-1.5 bg-slate-200/60 p-1 rounded-xl w-fit self-start">
+      <button onclick="setActiveTab('grid')" id="btn-tab-grid" class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-2 bg-white text-slate-900 shadow-sm">
+        <i class="fa-solid fa-table-cells text-emerald-500"></i><span>Spreadsheet View</span>
+      </button>
+      <button onclick="setActiveTab('cards')" id="btn-tab-cards" class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-2 text-slate-600 hover:text-slate-900">
+        <i class="fa-solid fa-address-card"></i><span>Directory Cards</span>
+      </button>
+      <button onclick="setActiveTab('directory')" id="btn-tab-directory" class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-2 text-slate-600 hover:text-slate-900">
+        <i class="fa-solid fa-users"></i><span>Employee Directory</span>
+      </button>
+    </div>
+
+    <!-- GRID VIEW -->
+    <section id="view-grid" class="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col flex-grow">
+      <div class="overflow-x-auto custom-scrollbar flex-grow">
+        <table class="w-full text-left border-collapse table-fixed select-none">
+          <thead>
+            <tr class="bg-slate-100/80 text-[10px] uppercase text-slate-400 tracking-wider border-b border-slate-200/80" id="grid-header"></tr>
+          </thead>
+          <tbody id="grid-body" class="text-xs divide-y divide-slate-150"></tbody>
+        </table>
+      </div>
+      <!-- Legend -->
+      <div class="p-3.5 border-t border-slate-150 bg-slate-50/50 flex flex-wrap gap-4 text-[11px] font-semibold text-slate-500 justify-center">
+        <div class="flex items-center gap-1.5"><span id="legend-P" class="w-4 h-4 flex items-center justify-center rounded text-[9px] font-extrabold border">P</span><span>Present</span></div>
+        <div class="flex items-center gap-1.5"><span id="legend-CL" class="w-4 h-4 flex items-center justify-center rounded text-[9px] font-extrabold border">CL</span><span>Casual Leave</span></div>
+        <div class="flex items-center gap-1.5"><span id="legend-SL" class="w-4 h-4 flex items-center justify-center rounded text-[9px] font-extrabold border">SL</span><span>Sick Leave</span></div>
+        <div class="flex items-center gap-1.5"><span id="legend-EL" class="w-4 h-4 flex items-center justify-center rounded text-[9px] font-extrabold border">EL</span><span>Earned Leave</span></div>
+        <div class="flex items-center gap-1.5"><span class="w-4 h-4 flex items-center justify-center rounded bg-slate-200 text-slate-600 text-[9px] font-extrabold">W</span><span>Weekend</span></div>
+        <div class="flex items-center gap-1.5"><span class="w-4 h-4 flex items-center justify-center rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold border border-violet-200">H</span><span>Holiday</span></div>
+      </div>
+    </section>
+
+    <!-- CARDS VIEW -->
+    <section id="view-cards" class="hidden flex flex-col gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="cards-container"></div>
+    </section>
+
+    <!-- EMPLOYEE DIRECTORY VIEW -->
+    <section id="view-directory" class="hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-slate-800">Employee Directory</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Manage all employee profiles — add, edit, or remove</p>
+          </div>
+          <button onclick="openAddEmployeeModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-all">
+            <i class="fa-solid fa-plus"></i> Add Employee
+          </button>
+        </div>
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-50 border-b border-slate-200 text-[11px] uppercase text-slate-400 tracking-wider">
+              <tr>
+                <th class="px-4 py-3">Emp Code</th>
+                <th class="px-4 py-3">Name</th>
+                <th class="px-4 py-3">Department</th>
+                <th class="px-4 py-3">Designation</th>
+                <th class="px-4 py-3">Email</th>
+                <th class="px-4 py-3 text-center">CL Quota</th>
+                <th class="px-4 py-3 text-center">SL Quota</th>
+                <th class="px-4 py-3 text-center">EL Quota</th>
+                <th class="px-4 py-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="directory-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200/80 py-4 mt-auto">
+    <div class="max-w-[1600px] mx-auto px-4 text-center text-[11px] text-slate-400 font-medium">
+      <p>&copy; 2026–2027 HempCann HR Administration Suite.</p>
+    </div>
+  </footer>
+</div>
+
+<!-- ========== SLIDE-OVER DRAWER ========== -->
+<div id="settings-drawer" class="hidden fixed inset-0 z-50 overflow-hidden" role="dialog">
+  <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeDrawer()"></div>
+  <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+    <div class="w-screen max-w-sm transform bg-white shadow-2xl flex flex-col drawer-transition translate-x-full" id="drawer-panel">
+      <div class="px-5 py-4 bg-slate-950 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i id="drawer-icon" class="fa-solid text-emerald-400"></i>
+          <h3 id="drawer-title" class="font-bold text-sm tracking-wide">Workspace Drawer</h3>
+        </div>
+        <button onclick="closeDrawer()" class="text-slate-400 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-6">
+
+        <!-- BOOKER -->
+        <div id="drawer-section-booker" class="hidden space-y-4">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <p class="text-xs text-slate-500 leading-relaxed font-medium">Instantly record leave timelines across your active employees roster.</p>
+          </div>
+          <form id="leave-booker-form" onsubmit="handleBookLeave(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Target Employee</label>
+              <select id="book-employee-id" required class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-2">Leave Category</label>
+              <div class="grid grid-cols-3 gap-2">
+                <label class="flex flex-col items-center justify-center border border-slate-200 rounded-xl py-3 hover:bg-slate-50 cursor-pointer relative">
+                  <input type="radio" name="leave-type" value="CL" checked class="absolute bottom-1 right-1.5 accent-emerald-600 scale-90">
+                  <span class="text-xs font-black text-amber-600">CL</span><span class="text-[9px] text-slate-400 font-bold">Casual</span>
+                </label>
+                <label class="flex flex-col items-center justify-center border border-slate-200 rounded-xl py-3 hover:bg-slate-50 cursor-pointer relative">
+                  <input type="radio" name="leave-type" value="SL" class="absolute bottom-1 right-1.5 accent-emerald-600 scale-90">
+                  <span class="text-xs font-black text-red-500">SL</span><span class="text-[9px] text-slate-400 font-bold">Sick</span>
+                </label>
+                <label class="flex flex-col items-center justify-center border border-slate-200 rounded-xl py-3 hover:bg-slate-50 cursor-pointer relative">
+                  <input type="radio" name="leave-type" value="EL" class="absolute bottom-1 right-1.5 accent-emerald-600 scale-90">
+                  <span class="text-xs font-black text-blue-600">EL</span><span class="text-[9px] text-slate-400 font-bold">Earned</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-2">Duration</label>
+              <div class="grid grid-cols-2 gap-2">
+                <label class="flex items-center justify-center border border-slate-200 rounded-xl py-2 hover:bg-slate-50 cursor-pointer relative">
+                  <input type="radio" name="book-duration" value="full" checked class="absolute bottom-1 right-1.5 accent-emerald-600 scale-90">
+                  <span class="text-xs font-bold text-slate-700">Full Day</span>
+                </label>
+                <label class="flex items-center justify-center border border-slate-200 rounded-xl py-2 hover:bg-slate-50 cursor-pointer relative">
+                  <input type="radio" name="book-duration" value="half" class="absolute bottom-1 right-1.5 accent-emerald-600 scale-90">
+                  <span class="text-xs font-bold text-slate-700">Half Day</span>
+                </label>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Start Date</label>
+                <input type="date" id="book-start-date" required min="2026-04-01" max="2027-03-31" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">End Date</label>
+                <input type="date" id="book-end-date" required min="2026-04-01" max="2027-03-31" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+              </div>
+            </div>
+            <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all shadow-md mt-4">Record Leave Schedule</button>
+          </form>
+        </div>
+
+        <!-- QUOTA -->
+        <div id="drawer-section-quota" class="hidden space-y-6">
+          <div class="space-y-4">
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Accrual Policy Targets</label>
+            <div class="grid grid-cols-2 gap-2 items-center">
+              <span class="text-xs font-bold text-amber-600">CL (Casual)</span>
+              <div><span class="text-[9px] text-slate-400 font-bold block">Year Quota</span>
+                <input type="number" id="input-quota-cl" step="0.5" value="6" onchange="updateRulesFromUI()" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-bold text-slate-700 text-center">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 items-center">
+              <span class="text-xs font-bold text-rose-500">SL (Sick)</span>
+              <div><span class="text-[9px] text-slate-400 font-bold block">Year Quota</span>
+                <input type="number" id="input-quota-sl" step="0.5" value="6" onchange="updateRulesFromUI()" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-bold text-slate-700 text-center">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 items-center">
+              <span class="text-xs font-bold text-blue-600">EL (Earned)</span>
+              <div><span class="text-[9px] text-slate-400 font-bold block">Year Quota</span>
+                <input type="number" id="input-quota-el" step="0.5" value="15" onchange="updateRulesFromUI()" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-bold text-slate-700 text-center">
+              </div>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-slate-150 space-y-2">
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Display Preferences</label>
+            <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span class="text-xs text-slate-600 font-semibold">Auto-Round Balances</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-round-mode" onchange="renderApp()" class="sr-only peer">
+                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== ADD / EDIT EMPLOYEE MODAL ========== -->
+<div id="add-employee-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden modal-enter">
+    <div class="bg-slate-950 text-white px-5 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <i id="emp-modal-icon" class="fa-solid fa-user-plus text-emerald-400"></i>
+        <h3 id="emp-modal-title" class="font-bold text-sm tracking-wide">Add New Employee</h3>
+      </div>
+      <button onclick="closeAddEmployeeModal()" class="text-slate-400 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <form id="add-employee-form" onsubmit="handleSaveEmployee(event)" class="p-5 space-y-4">
+      <input type="hidden" id="emp-modal-edit-id">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">Full Name *</label>
+          <input type="text" id="new-emp-name" required placeholder="e.g. Adnan Ali" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">Employee Code *</label>
+          <input type="text" id="new-emp-code" required placeholder="e.g. HCS_190" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">Department</label>
+          <select id="new-emp-dept" onchange="updateDesignationOptions(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">Designation</label>
+          <select id="new-emp-desig" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"></select>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">Email Address</label>
+        <input type="email" id="new-emp-email" placeholder="name@hempcann.in" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+      </div>
+      <div class="border-t border-slate-100 pt-3">
+        <span class="block text-xs font-bold text-slate-700 mb-2">Initial Yearly Quotas</span>
+        <div class="grid grid-cols-3 gap-2">
+          <div><label class="block text-[10px] text-slate-400 font-bold mb-1">Casual (CL)</label>
+            <input type="number" id="new-emp-quota-cl" step="0.5" min="0" value="6" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-bold text-center">
+          </div>
+          <div><label class="block text-[10px] text-slate-400 font-bold mb-1">Sick (SL)</label>
+            <input type="number" id="new-emp-quota-sl" step="0.5" min="0" value="6" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-bold text-center">
+          </div>
+          <div><label class="block text-[10px] text-slate-400 font-bold mb-1">Earned (EL)</label>
+            <input type="number" id="new-emp-quota-el" step="0.5" min="0" value="15" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-bold text-center">
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
+        <button type="button" onclick="closeAddEmployeeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-semibold transition-colors">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors" id="emp-modal-submit-btn">Add Employee</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========== SYSTEM SETTINGS MODAL ========== -->
+<div id="system-settings-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden modal-enter">
+    <div class="bg-slate-950 text-white px-5 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-gear text-violet-400"></i>
+        <h3 class="font-bold text-sm tracking-wide">System Settings</h3>
+      </div>
+      <button onclick="closeSystemSettings()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="p-5 space-y-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
+
+      <!-- Account Settings -->
+      <div>
+        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3">Account Settings</h4>
+        <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Login Email</label>
+            <input type="email" id="settings-email" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">New Password</label>
+            <div class="relative">
+              <input type="password" id="settings-password" placeholder="Leave blank to keep current" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+              <button type="button" onclick="toggleSettingsPwd()" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"><i id="settings-pwd-eye" class="fa-solid fa-eye text-sm"></i></button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Confirm Password</label>
+            <input type="password" id="settings-password-confirm" placeholder="Repeat new password" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+          </div>
+          <button onclick="saveAccountSettings()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all">Save Account Settings</button>
+        </div>
+      </div>
+
+      <!-- Leave Color Coding -->
+      <div>
+        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3">Leave Colour Coding</h4>
+        <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+          <div class="grid grid-cols-3 gap-3">
+            <div class="text-center">
+              <label class="block text-xs font-bold text-amber-700 mb-2">Casual (CL)</label>
+              <input type="color" id="color-CL" value="#92400e" class="w-full h-10 rounded-lg cursor-pointer border border-slate-200" onchange="applyLeaveColors()">
+              <input type="text" id="color-CL-bg" value="#fffbeb" placeholder="bg hex" class="w-full mt-1 bg-white border border-slate-200 rounded px-2 py-1 text-[10px] text-center font-mono" onchange="applyLeaveColors()">
+            </div>
+            <div class="text-center">
+              <label class="block text-xs font-bold text-rose-700 mb-2">Sick (SL)</label>
+              <input type="color" id="color-SL" value="#9f1239" class="w-full h-10 rounded-lg cursor-pointer border border-slate-200" onchange="applyLeaveColors()">
+              <input type="text" id="color-SL-bg" value="#fff1f2" placeholder="bg hex" class="w-full mt-1 bg-white border border-slate-200 rounded px-2 py-1 text-[10px] text-center font-mono" onchange="applyLeaveColors()">
+            </div>
+            <div class="text-center">
+              <label class="block text-xs font-bold text-blue-700 mb-2">Earned (EL)</label>
+              <input type="color" id="color-EL" value="#1e40af" class="w-full h-10 rounded-lg cursor-pointer border border-slate-200" onchange="applyLeaveColors()">
+              <input type="text" id="color-EL-bg" value="#eff6ff" placeholder="bg hex" class="w-full mt-1 bg-white border border-slate-200 rounded px-2 py-1 text-[10px] text-center font-mono" onchange="applyLeaveColors()">
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-400 text-center">Color picker = text color · Hex field = background color</p>
+        </div>
+      </div>
+
+      <!-- Manage Departments -->
+      <div>
+        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3">Manage Departments</h4>
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+          <div id="dept-list" class="space-y-2"></div>
+          <div class="flex gap-2 mt-2">
+            <input type="text" id="new-dept-name" placeholder="New department name..." class="flex-grow bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+            <button onclick="addDepartment()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5">
+              <i class="fa-solid fa-plus"></i> Add
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ========== DELETE CONFIRMATION MODAL ========== -->
+<div id="delete-confirm-modal" class="hidden fixed inset-0 z-[60] bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-sm overflow-hidden modal-enter">
+    <div class="p-6 text-center">
+      <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fa-solid fa-trash-can text-red-500 text-xl"></i>
+      </div>
+      <h3 class="font-bold text-slate-800 mb-2">Delete Employee?</h3>
+      <p class="text-xs text-slate-500 mb-6">This will permanently remove <strong id="delete-emp-name" class="text-slate-700"></strong> and all their leave records. This cannot be undone.</p>
+      <div class="flex gap-3 justify-center">
+        <button onclick="closeDeleteModal()" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors">Cancel</button>
+        <button onclick="confirmDeleteEmployee()" class="px-5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-bold transition-colors">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CELL CONTEXT MENU ========== -->
+<div id="cell-context-menu" class="hidden absolute z-50 bg-white border border-slate-200 shadow-xl rounded-xl py-2 w-56 text-xs text-slate-700">
+  <div class="px-3.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-1.5">Set Attendance Status</div>
+  <button onclick="setCellStatus('P')" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center justify-between transition-colors">
+    <span class="flex items-center gap-2 font-medium"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Present (P)</span>
+    <i id="tick-P" class="fa-solid fa-check text-emerald-600 hidden"></i>
+  </button>
+  <div class="border-t border-slate-50 my-1"></div>
+  <div class="px-4 py-1.5 flex flex-col gap-1.5">
+    <div class="flex items-center font-bold" id="ctx-CL-label"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-2"></span>Casual (CL)</div>
+    <div class="grid grid-cols-2 gap-1.5">
+      <button onclick="setCellStatus('CL')" class="px-2 py-1 rounded text-[10px] font-bold border flex items-center justify-center gap-1 transition-all" id="ctx-btn-CL">Full <i id="tick-CL" class="fa-solid fa-check hidden"></i></button>
+      <button onclick="setCellStatus('CL-half')" class="px-2 py-1 rounded text-[10px] font-bold border flex items-center justify-center gap-1 transition-all" id="ctx-btn-CL-half">Half <i id="tick-CL-half" class="fa-solid fa-check hidden"></i></button>
+    </div>
+  </div>
+  <div class="border-t border-slate-50 my-1"></div>
+  <div class="px-4 py-1.5 flex flex-col gap-1.5">
+    <div class="flex items-center font-bold text-rose-800"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-2"></span>Sick (SL)</div>
+    <div class="grid grid-cols-2 gap-1.5">
+      <button onclick="setCellStatus('SL')" class="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-[10px] font-bold text-rose-900 border border-rose-200 flex items-center justify-center gap-1 transition-all">Full <i id="tick-SL" class="fa-solid fa-check hidden"></i></button>
+      <button onclick="setCellStatus('SL-half')" class="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-[10px] font-bold text-rose-900 border border-rose-200 flex items-center justify-center gap-1 transition-all">Half <i id="tick-SL-half" class="fa-solid fa-check hidden"></i></button>
+    </div>
+  </div>
+  <div class="border-t border-slate-50 my-1"></div>
+  <div class="px-4 py-1.5 flex flex-col gap-1.5">
+    <div class="flex items-center font-bold text-blue-800"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></span>Earned (EL)</div>
+    <div class="grid grid-cols-2 gap-1.5">
+      <button onclick="setCellStatus('EL')" class="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-[10px] font-bold text-blue-900 border border-blue-200 flex items-center justify-center gap-1 transition-all">Full <i id="tick-EL" class="fa-solid fa-check hidden"></i></button>
+      <button onclick="setCellStatus('EL-half')" class="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-[10px] font-bold text-blue-900 border border-blue-200 flex items-center justify-center gap-1 transition-all">Half <i id="tick-EL-half" class="fa-solid fa-check hidden"></i></button>
+    </div>
+  </div>
+  <div class="border-t border-slate-100 my-1.5"></div>
+  <button onclick="setCellStatus('W')" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center justify-between transition-colors">
+    <span class="flex items-center gap-2 font-medium"><span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>Weekend (W)</span>
+    <i id="tick-W" class="fa-solid fa-check text-slate-600 hidden"></i>
+  </button>
+  <button onclick="setCellStatus('H')" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center justify-between transition-colors">
+    <span class="flex items-center gap-2 font-medium"><span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span>Holiday (H)</span>
+    <i id="tick-H" class="fa-solid fa-check text-violet-600 hidden"></i>
+  </button>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-5 right-5 z-[200] bg-slate-900 text-white text-xs px-4 py-3 rounded-lg shadow-xl transition-all translate-y-20 opacity-0 flex items-center gap-2">
+  <i class="fa-solid fa-circle-info text-emerald-400"></i>
+  <span id="toast-message">Update Successful</span>
+</div>
+
+<!-- ========== JAVASCRIPT ========== -->
+<script>
+// ─── APP STATE ────────────────────────────────────────────────────
+let activeTab = 'grid';
+let currentYearMonth = '2026-04';
+let departmentFilter = 'All';
+let searchQuery = '';
+let activeCellCoordinates = null;
+let quotas = { CL: 6, SL: 6, EL: 15 };
+let pendingDeleteId = null;
+
+// Auth state (initially empty, loaded from server)
+let authCredentials = { email: '', password: '' };
+
+// Leave color config (initially empty, loaded from server)
+let leaveColors = {
+  CL: { text: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  SL: { text: '#9f1239', bg: '#fff1f2', border: '#fecdd3' },
+  EL: { text: '#1e40af', bg: '#eff6ff', border: '#bfdbfe' },
+};
+
+// Departments list (loaded from server)
+let departments = [];
+
+const designations = {
+  'Accounts': ['Accountant', 'Finance Manager', 'Senior Accountant', 'Accounts Executive'],
+  'Customer service and sales': ['Customer Service Executive', 'Sales Executive', 'CRM Specialist'],
+  'Hr and Admin': ['HR Associate', 'HR Manager', 'Admin Officer', 'Talent Partner'],
+  'Manufacturing': ['Production Supervisor', 'Machine Operator', 'Quality Analyst', 'Plant Manager', 'Production Worker'],
+  'Store': ['Store Manager', 'Store Executive', 'Inventory Officer', 'Logistics Executive'],
+  'Sales and Marketing': ['Sales Executive', 'Marketing Specialist', 'Account Executive', 'Sales Lead'],
+  'Lab': ['Lab Analyst', 'Lab Technician', 'Senior Analyst', 'Lab Manager'],
+  'Designing': ['Graphic Designer', 'UI Designer', 'Design Lead', 'Creative Executive'],
+};
+
+const financialMonths = [
+  "2026-04","2026-05","2026-06","2026-07","2026-08","2026-09",
+  "2026-10","2026-11","2026-12","2027-01","2027-02","2027-03"
+];
+const monthNamesMap = {
+  "2026-04":"April 2026","2026-05":"May 2026","2026-06":"June 2026",
+  "2026-07":"July 2026","2026-08":"August 2026","2026-09":"September 2026",
+  "2026-10":"October 2026","2026-11":"November 2026","2026-12":"December 2026",
+  "2027-01":"January 2027","2027-02":"February 2027","2027-03":"March 2027"
+};
+
+// ─── EMPLOYEE DATA (initially empty, loaded from server) ─────────────────────────────
+let employees = [];
+
+// ─── LOAD DATA FROM SERVER ────────────────────────────────────────
+async function loadDataFromServer() {
+  try {
+    const res = await fetch('/api/data');
+    if (!res.ok) throw new Error('Failed to load data');
+    const data = await res.json();
+    employees = data.employees || [];
+    departments = data.departments || [];
+    authCredentials = data.authCredentials || authCredentials;
+    leaveColors = data.leaveColors || leaveColors;
+    quotas = data.quotas || quotas;
+    console.log('Successfully synchronized with Neon DB backend API.');
+  } catch (err) {
+    console.error('Server sync error:', err);
+    triggerToast('Error synchronizing with server. Running locally.');
+  }
+}
+
+// ─── LOGIN ────────────────────────────────────────────────────────
+function handleLogin() {
+  const emailInput = document.getElementById('login-email').value.trim();
+  const pwdInput = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  const errMsg = document.getElementById('login-error-msg');
+
+  if (emailInput === authCredentials.email && pwdInput === authCredentials.password) {
+    document.getElementById('login-page').style.display = 'none';
+    const app = document.getElementById('main-app');
+    app.classList.remove('hidden');
+    app.classList.add('flex');
+    initApp();
+  } else {
+    errMsg.textContent = emailInput !== authCredentials.email ? 'Email address not found.' : 'Incorrect password.';
+    errEl.classList.remove('hidden');
+    setTimeout(() => errEl.classList.add('hidden'), 3500);
+  }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !document.getElementById('login-page').style.display) handleLogin();
+});
+
+function handleLogout() {
+  document.getElementById('main-app').classList.add('hidden');
+  document.getElementById('main-app').classList.remove('flex');
+  document.getElementById('login-page').style.display = '';
+  document.getElementById('login-password').value = '';
+}
+
+function toggleLoginPwd() {
+  const f = document.getElementById('login-password');
+  const icon = document.getElementById('pwd-eye-icon');
+  if (f.type === 'password') { f.type = 'text'; icon.className = 'fa-solid fa-eye-slash text-sm'; }
+  else { f.type = 'password'; icon.className = 'fa-solid fa-eye text-sm'; }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────
+async function initApp() {
+  await loadDataFromServer();
+  
+  // Set global quota inputs in settings drawer
+  document.getElementById('input-quota-cl').value = quotas.CL;
+  document.getElementById('input-quota-sl').value = quotas.SL;
+  document.getElementById('input-quota-el').value = quotas.EL;
+
+  populateDeptFilter();
+  populateEmployeeSelector();
+  setupContextMenuDismissal();
+  setMonthByIndex(0);
+  applyLeaveColors(false); // don't write back during init
+}
+
+// ─── DEPT FILTER POPULATION ───────────────────────────────────────
+function populateDeptFilter() {
+  const sel = document.getElementById('filter-dept');
+  if (!sel) return;
+  const curr = sel.value || 'All';
+  sel.innerHTML = '<option value="All">All Departments</option>';
+  departments.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d;
+    if (d === curr) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+// ─── MONTH NAVIGATION ─────────────────────────────────────────────
+function setMonthByIndex(index) {
+  const slider = document.getElementById('timeline-slider');
+  if (slider) { slider.value = index; syncSliderToMonth(index); }
+}
+function syncSliderToMonth(index) {
+  currentYearMonth = financialMonths[index];
+  const el = document.getElementById('current-month-display');
+  if (el) el.textContent = monthNamesMap[currentYearMonth];
+  for (let i = 0; i < 12; i++) {
+    const pill = document.getElementById(`pill-${i}`);
+    if (pill) {
+      pill.className = i == index
+        ? 'cursor-pointer transition-colors px-2 py-0.5 rounded-full bg-slate-900 text-white font-extrabold'
+        : 'cursor-pointer hover:text-slate-800 transition-colors px-2 py-0.5 rounded-full text-slate-400 font-bold';
+    }
+  }
+  renderApp();
+}
+
+// ─── DRAWER ───────────────────────────────────────────────────────
+function openDrawer(sectionType) {
+  const drawer = document.getElementById('settings-drawer');
+  const panel = document.getElementById('drawer-panel');
+  const title = document.getElementById('drawer-title');
+  const icon = document.getElementById('drawer-icon');
+  document.getElementById('drawer-section-booker').classList.add('hidden');
+  document.getElementById('drawer-section-quota').classList.add('hidden');
+  if (sectionType === 'booker') {
+    title.textContent = 'Quick Leave Booker';
+    icon.className = 'fa-solid fa-calendar-plus text-emerald-400';
+    document.getElementById('drawer-section-booker').classList.remove('hidden');
+  } else if (sectionType === 'quota') {
+    title.textContent = 'Global Quota Engine';
+    icon.className = 'fa-solid fa-sliders text-emerald-400';
+    document.getElementById('drawer-section-quota').classList.remove('hidden');
+  }
+  drawer.classList.remove('hidden');
+  setTimeout(() => panel.classList.remove('translate-x-full'), 50);
+}
+function closeDrawer() {
+  const panel = document.getElementById('drawer-panel');
+  const drawer = document.getElementById('settings-drawer');
+  panel.classList.add('translate-x-full');
+  setTimeout(() => drawer.classList.add('hidden'), 300);
+}
+
+// ─── SYSTEM SETTINGS ──────────────────────────────────────────────
+function openSystemSettings() {
+  document.getElementById('settings-email').value = authCredentials.email;
+  document.getElementById('settings-password').value = '';
+  document.getElementById('settings-password-confirm').value = '';
+  document.getElementById('color-CL').value = leaveColors.CL.text;
+  document.getElementById('color-CL-bg').value = leaveColors.CL.bg;
+  document.getElementById('color-SL').value = leaveColors.SL.text;
+  document.getElementById('color-SL-bg').value = leaveColors.SL.bg;
+  document.getElementById('color-EL').value = leaveColors.EL.text;
+  document.getElementById('color-EL-bg').value = leaveColors.EL.bg;
+  renderDeptList();
+  const modal = document.getElementById('system-settings-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+function closeSystemSettings() {
+  const modal = document.getElementById('system-settings-modal');
+  modal.classList.remove('flex');
+  modal.classList.add('hidden');
+}
+function toggleSettingsPwd() {
+  const f = document.getElementById('settings-password');
+  const icon = document.getElementById('settings-pwd-eye');
+  if (f.type === 'password') { f.type = 'text'; icon.className = 'fa-solid fa-eye-slash text-sm'; }
+  else { f.type = 'password'; icon.className = 'fa-solid fa-eye text-sm'; }
+}
+async function saveAccountSettings() {
+  const email = document.getElementById('settings-email').value.trim();
+  const pwd = document.getElementById('settings-password').value;
+  const conf = document.getElementById('settings-password-confirm').value;
+  if (!email) { triggerToast('Email cannot be empty.'); return; }
+  if (pwd && pwd !== conf) { triggerToast('Passwords do not match!'); return; }
+  
+  const newCreds = { email, password: pwd || authCredentials.password };
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'authCredentials', value: newCreds })
+    });
+    if (!res.ok) throw new Error('Failed to update credentials');
+    authCredentials = newCreds;
+    triggerToast('Account settings saved successfully.');
+    closeSystemSettings();
+  } catch (err) {
+    console.error(err);
+    triggerToast('Error saving settings to server.');
+  }
+}
+async function applyLeaveColors(writeToServer = true) {
+  leaveColors.CL.text = document.getElementById('color-CL').value;
+  leaveColors.CL.bg = document.getElementById('color-CL-bg').value;
+  leaveColors.SL.text = document.getElementById('color-SL').value;
+  leaveColors.SL.bg = document.getElementById('color-SL-bg').value;
+  leaveColors.EL.text = document.getElementById('color-EL').value;
+  leaveColors.EL.bg = document.getElementById('color-EL-bg').value;
+  
+  // Update legend UI colors
+  const updateLegend = (id, text, bg) => {
+    const el = document.getElementById(`legend-${id}`);
+    if (el) { el.style.color = text; el.style.backgroundColor = bg; el.style.borderColor = bg; }
+  };
+  updateLegend('P', '#065f46', '#ecfdf5');
+  updateLegend('CL', leaveColors.CL.text, leaveColors.CL.bg);
+  updateLegend('SL', leaveColors.SL.text, leaveColors.SL.bg);
+  updateLegend('EL', leaveColors.EL.text, leaveColors.EL.bg);
+  
+  const labelEl = document.getElementById('ctx-CL-label');
+  if (labelEl) labelEl.style.color = leaveColors.CL.text;
+
+  renderApp();
+
+  if (writeToServer) {
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'leaveColors', value: leaveColors })
+      });
+    } catch (err) {
+      console.error('Failed to sync color settings:', err);
+    }
+  }
+}
+
+// ─── DEPARTMENTS ──────────────────────────────────────────────────
+function renderDeptList() {
+  const container = document.getElementById('dept-list');
+  if (!container) return;
+  container.innerHTML = '';
+  departments.forEach((dept, i) => {
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 bg-white border border-slate-100 rounded-lg px-3 py-2';
+    row.innerHTML = `
+      <span class="flex-grow text-xs font-semibold text-slate-700">${dept}</span>
+      <button onclick="removeDepartment(${i})" class="text-slate-300 hover:text-red-500 transition-colors text-xs"><i class="fa-solid fa-xmark"></i></button>
+    `;
+    container.appendChild(row);
+  });
+}
+async function addDepartment() {
+  const input = document.getElementById('new-dept-name');
+  const name = input.value.trim();
+  if (!name) { triggerToast('Enter a department name.'); return; }
+  if (departments.includes(name)) { triggerToast('Department already exists.'); return; }
+  
+  try {
+    const res = await fetch('/api/departments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    if (!res.ok) throw new Error('Failed to add department');
+    departments.push(name);
+    if (!designations[name]) designations[name] = ['Executive', 'Manager', 'Analyst'];
+    input.value = '';
+    renderDeptList();
+    populateDeptFilter();
+    triggerToast(`Department "${name}" added.`);
+  } catch (err) {
+    console.error(err);
+    triggerToast('Error adding department.');
+  }
+}
+async function removeDepartment(index) {
+  const name = departments[index];
+  try {
+    const res = await fetch(`/api/departments/${encodeURIComponent(name)}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Failed to delete department');
+    departments.splice(index, 1);
+    renderDeptList();
+    populateDeptFilter();
+    triggerToast(`Department "${name}" removed.`);
+  } catch (err) {
+    console.error(err);
+    triggerToast('Error removing department.');
+  }
+}
+
+// ─── EMPLOYEE MODAL ───────────────────────────────────────────────
+function openAddEmployeeModal(editId = null) {
+  const modal = document.getElementById('add-employee-modal');
+  const title = document.getElementById('emp-modal-title');
+  const icon = document.getElementById('emp-modal-icon');
+  const submitBtn = document.getElementById('emp-modal-submit-btn');
+  const editInput = document.getElementById('emp-modal-edit-id');
+
+  // Populate dept selector
+  const deptSel = document.getElementById('new-emp-dept');
+  deptSel.innerHTML = '';
+  departments.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d;
+    deptSel.appendChild(o);
+  });
+
+  if (editId) {
+    const emp = employees.find(e => e.id === editId);
+    if (!emp) return;
+    title.textContent = 'Edit Employee Profile';
+    icon.className = 'fa-solid fa-user-pen text-sky-400';
+    submitBtn.textContent = 'Save Changes';
+    submitBtn.className = 'px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors';
+    editInput.value = editId;
+    document.getElementById('new-emp-name').value = emp.name;
+    document.getElementById('new-emp-code').value = emp.id;
+    document.getElementById('new-emp-code').readOnly = true;
+    document.getElementById('new-emp-email').value = emp.email || '';
+    document.getElementById('new-emp-quota-cl').value = emp.quotaCL;
+    document.getElementById('new-emp-quota-sl').value = emp.quotaSL;
+    document.getElementById('new-emp-quota-el').value = emp.quotaEL;
+    deptSel.value = emp.department;
+    updateDesignationOptions(emp.department, emp.designation);
+  } else {
+    title.textContent = 'Add New Employee';
+    icon.className = 'fa-solid fa-user-plus text-emerald-400';
+    submitBtn.textContent = 'Add Employee';
+    submitBtn.className = 'px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors';
+    editInput.value = '';
+    document.getElementById('add-employee-form').reset();
+    document.getElementById('new-emp-quota-cl').value = quotas.CL;
+    document.getElementById('new-emp-quota-sl').value = quotas.SL;
+    document.getElementById('new-emp-quota-el').value = quotas.EL;
+    document.getElementById('new-emp-code').readOnly = false;
+    updateDesignationOptions(departments[0]);
+    deptSel.value = departments[0];
+  }
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+function closeAddEmployeeModal() {
+  const modal = document.getElementById('add-employee-modal');
+  modal.classList.remove('flex');
+  modal.classList.add('hidden');
+}
+function updateDesignationOptions(dept, selectedDesig = null) {
+  const sel = document.getElementById('new-emp-desig');
+  if (!sel) return;
+  sel.innerHTML = '';
+  const list = designations[dept] || ['Executive', 'Manager', 'Analyst'];
+  list.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d;
+    if (selectedDesig && d === selectedDesig) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+async function handleSaveEmployee(e) {
+  e.preventDefault();
+  const editId = document.getElementById('emp-modal-edit-id').value;
+  const name = document.getElementById('new-emp-name').value.trim();
+  const code = document.getElementById('new-emp-code').value.trim();
+  const dept = document.getElementById('new-emp-dept').value;
+  const desig = document.getElementById('new-emp-desig').value;
+  const email = document.getElementById('new-emp-email').value.trim();
+  const qCL = parseFloat(document.getElementById('new-emp-quota-cl').value) || 0;
+  const qSL = parseFloat(document.getElementById('new-emp-quota-sl').value) || 0;
+  const qEL = parseFloat(document.getElementById('new-emp-quota-el').value) || 0;
+  if (!name || !code) { triggerToast('Name and Employee Code are required.'); return; }
+
+  const empPayload = { id: code, name, department: dept, designation: desig, email, quotaCL: qCL, quotaSL: qSL, quotaEL: qEL };
+
+  try {
+    const res = await fetch('/api/employees', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(empPayload)
+    });
+    if (!res.ok) throw new Error('Failed to save employee profile');
+
+    if (editId) {
+      const emp = employees.find(e => e.id === editId);
+      if (emp) {
+        emp.name = name; emp.department = dept; emp.designation = desig;
+        emp.email = email; emp.quotaCL = qCL; emp.quotaSL = qSL; emp.quotaEL = qEL;
+      }
+      triggerToast(`Updated: ${name}`);
+    } else {
+      if (employees.find(e => e.id === code)) { triggerToast('Employee Code already exists!'); return; }
+      employees.push({ ...empPayload, leaves: {} });
+      triggerToast(`Added: ${name} (${code})`);
+    }
+    populateEmployeeSelector();
+    closeAddEmployeeModal();
+    renderApp();
+  } catch (err) {
+    console.error(err);
+    triggerToast('Error saving employee to database.');
+  }
+}
+
+// ─── DELETE EMPLOYEE ──────────────────────────────────────────────
+function openDeleteModal(empId) {
+  pendingDeleteId = empId;
+  const emp = employees.find(e => e.id === empId);
+  document.getElementById('delete-emp-name').textContent = emp ? `${emp.name} (${emp.id})` : empId;
+  const modal = document.getElementById('delete-confirm-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+function closeDeleteModal() {
+  pendingDeleteId = null;
+  const modal = document.getElementById('delete-confirm-modal');
+  modal.classList.remove('flex');
+  modal.classList.add('hidden');
+}
+async function confirmDeleteEmployee() {
+  if (!pendingDeleteId) return;
+  try {
+    const res = await fetch(`/api/employees/${pendingDeleteId}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Failed to delete employee');
+    
+    const idx = employees.findIndex(e => e.id === pendingDeleteId);
+    if (idx !== -1) {
+      const name = employees[idx].name;
+      employees.splice(idx, 1);
+      triggerToast(`Removed: ${name}`);
+    }
+    closeDeleteModal();
+    populateEmployeeSelector();
+    renderApp();
+  } catch (err) {
+    console.error(err);
+    triggerToast('Error deleting employee.');
+  }
+}
+
+// ─── QUOTA UPDATE ─────────────────────────────────────────────────
+async function updateRulesFromUI() {
+  const newQuotas = {
+    CL: parseFloat(document.getElementById('input-quota-cl').value) || 0,
+    SL: parseFloat(document.getElementById('input-quota-sl').value) || 0,
+    EL: parseFloat(document.getElementById('input-quota-el').value) || 0
+  };
+
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'quotas', value: newQuotas })
+    });
+    if (!res.ok) throw new Error('Failed to update quotas');
+
+    quotas = newQuotas;
+    employees.forEach(emp => { emp.quotaCL = quotas.CL; emp.quotaSL = quotas.SL; emp.quotaEL = quotas.EL; });
+    triggerToast('Global quotas updated.');
+    renderApp();
+  } catch (err) {
+    console.error(err);
+    triggerToast('Error updating global quotas.');
+  }
+}
+async function updateEmployeeQuota(employeeId, type, value) {
+  const emp = employees.find(e => e.id === employeeId);
+  if (emp) {
+    const v = parseFloat(value) || 0;
+    const updatedEmp = { ...emp };
+    if (type === 'CL') updatedEmp.quotaCL = v;
+    else if (type === 'SL') updatedEmp.quotaSL = v;
+    else if (type === 'EL') updatedEmp.quotaEL = v;
+
+    try {
+      const res = await fetch('/api/employees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedEmp)
+      });
+      if (!res.ok) throw new Error('Failed to update employee quota');
+
+      if (type === 'CL') emp.quotaCL = v;
+      else if (type === 'SL') emp.quotaSL = v;
+      else if (type === 'EL') emp.quotaEL = v;
+      triggerToast(`Updated ${emp.name}'s ${type} quota`);
+      renderApp();
+    } catch (err) {
+      console.error(err);
+      triggerToast('Error saving quota updates.');
+    }
+  }
+}
+
+// ─── BOOK LEAVE ───────────────────────────────────────────────────
+async function handleBookLeave(e) {
+  e.preventDefault();
+  const empId = document.getElementById('book-employee-id').value;
+  const type = document.querySelector('input[name="leave-type"]:checked').value;
+  const duration = document.querySelector('input[name="book-duration"]:checked').value;
+  const startStr = document.getElementById('book-start-date').value;
+  const endStr = document.getElementById('book-end-date').value;
+  const startDate = new Date(startStr), endDate = new Date(endStr);
+  if (endDate < startDate) { triggerToast('End Date cannot be before Start Date!'); return; }
+  
+  try {
+    const res = await fetch('/api/leaves/book', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        employeeId: empId,
+        type,
+        duration,
+        startDateStr: startStr,
+        endDateStr: endStr
+      })
+    });
+    if (!res.ok) throw new Error('Failed to book leave');
+
+    // Reload from server to fetch correct calculations
+    await loadDataFromServer();
+    triggerToast(`Leave booked successfully.`);
+    closeDrawer();
+    renderApp();
+    document.getElementById('leave-booker-form').reset();
+  } catch (err) {
+    console.error(err);
+    triggerToast('Error booking leave range.');
+  }
+}
+
+// ─── FILTERS ──────────────────────────────────────────────────────
+function handleSearch(val) { searchQuery = val.trim().toLowerCase(); renderApp(); }
+function handleDeptFilter(val) { departmentFilter = val; renderApp(); }
+
+// ─── TABS ─────────────────────────────────────────────────────────
+function setActiveTab(tab) {
+  activeTab = tab;
+  ['grid','cards','directory'].forEach(t => {
+    const btn = document.getElementById(`btn-tab-${t}`);
+    const view = document.getElementById(`view-${t}`);
+    if (!btn || !view) return;
+    if (t === tab) {
+      btn.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-2 bg-white text-slate-900 shadow-sm';
+      view.classList.remove('hidden');
+    } else {
+      btn.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-2 text-slate-600 hover:text-slate-900';
+      view.classList.add('hidden');
+    }
+  });
+  renderApp();
+}
+
+// ─── CELL CONTEXT MENU ────────────────────────────────────────────
+function openCellMenu(event, employeeId, dateStr) {
+  event.preventDefault(); event.stopPropagation();
+  activeCellCoordinates = { employeeId, dateStr };
+  const emp = employees.find(e => e.id === employeeId);
+  if (!emp) return;
+  const currentVal = emp.leaves[dateStr] || (isDateWeekend(dateStr) ? 'W' : 'P');
+  ['P','CL','CL-half','SL','SL-half','EL','EL-half','W','H'].forEach(s => {
+    const el = document.getElementById(`tick-${s}`);
+    if (el) el.classList.toggle('hidden', s !== currentVal);
+  });
+  const menu = document.getElementById('cell-context-menu');
+  menu.classList.remove('hidden');
+  const rect = event.currentTarget.getBoundingClientRect();
+  const mH = 300, mW = 224;
+  let top = window.scrollY + rect.bottom + 4;
+  let left = window.scrollX + rect.left;
+  if (window.innerHeight - rect.bottom < mH) top = window.scrollY + rect.top - mH - 4;
+  if (window.innerWidth - rect.left < mW) left = window.scrollX + rect.right - mW;
+  menu.style.top = `${top}px`; menu.style.left = `${left}px`;
+}
+function isDateWeekend(dateStr) { const d = new Date(dateStr); return d.getDay() === 0 || d.getDay() === 6; }
+async function setCellStatus(status) {
+  if (!activeCellCoordinates) return;
+  const { employeeId, dateStr } = activeCellCoordinates;
+  
+  try {
+    const res = await fetch('/api/leaves/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ employeeId, dateStr, status })
+    });
+    if (!res.ok) throw new Error('Failed to update leave status');
+
+    const emp = employees.find(e => e.id === employeeId);
+    if (emp) { emp.leaves[dateStr] = status; triggerToast(`Set to ${status.replace('-half',' ½')}`); renderApp(); }
+  } catch (err) {
+    console.error(err);
+    triggerToast('Error updating cell status.');
+  }
+
+  document.getElementById('cell-context-menu').classList.add('hidden');
+  activeCellCoordinates = null;
+}
+function setupContextMenuDismissal() {
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('cell-context-menu');
+    if (menu && !menu.classList.contains('hidden') && !e.target.closest('#cell-context-menu') && !e.target.closest('.day-cell')) {
+      menu.classList.add('hidden');
+    }
+  });
+}
+
+// ─── POPULATE BOOKER SELECTOR ─────────────────────────────────────
+function populateEmployeeSelector() {
+  const select = document.getElementById('book-employee-id');
+  if (!select) return;
+  select.innerHTML = '';
+  employees.forEach(emp => {
+    const o = document.createElement('option');
+    o.value = emp.id; o.textContent = `${emp.name} (${emp.id})`;
+    select.appendChild(o);
+  });
+}
+
+// ─── BALANCE COMPUTATION ──────────────────────────────────────────
+function getDaysInMonth(yearMonth) {
+  const [y, m] = yearMonth.split('-').map(Number);
+  return new Date(y, m, 0).getDate();
+}
+function computeBalances(employee) {
+  const computed = {};
+  const qCL = employee.quotaCL !== undefined ? employee.quotaCL : quotas.CL;
+  const qSL = employee.quotaSL !== undefined ? employee.quotaSL : quotas.SL;
+  const qEL = employee.quotaEL !== undefined ? employee.quotaEL : quotas.EL;
+  const mCL = 0.5, mSL = 0.5, mEL = 1.5;
+  let carryCL = qCL, carrySL = qSL, carryEL = qEL;
+  let carryMoCL = 0, carryMoSL = 0, carryMoEL = 0;
+  financialMonths.forEach(m => {
+    const dim = getDaysInMonth(m);
+    let tCL = 0, tSL = 0, tEL = 0;
+    for (let d = 1; d <= dim; d++) {
+      const ds = `${m}-${String(d).padStart(2,'0')}`;
+      const s = employee.leaves[ds];
+      if (s === 'CL') tCL += 1; else if (s === 'CL-half') tCL += 0.5;
+      else if (s === 'SL') tSL += 1; else if (s === 'SL-half') tSL += 0.5;
+      else if (s === 'EL') tEL += 1; else if (s === 'EL-half') tEL += 0.5;
+    }
+    const opCL = carryCL, opSL = carrySL, opEL = carryEL;
+    const opMoCL = carryMoCL + mCL, opMoSL = carryMoSL + mSL, opMoEL = carryMoEL + mEL;
+    const clCL = opCL - tCL*0.5, clSL = opSL - tSL*0.5, clEL = opEL - tEL*1.5;
+    const clMoCL = opMoCL - tCL*0.5, clMoSL = opMoSL - tSL*0.5, clMoEL = opMoEL - tEL*1.5;
+    computed[m] = {
+      opening:{CL:opCL,SL:opSL,EL:opEL}, openingMo:{CL:opMoCL,SL:opMoSL,EL:opMoEL},
+      taken:{CL:tCL,SL:tSL,EL:tEL},
+      closing:{CL:clCL,SL:clSL,EL:clEL}, closingMo:{CL:clMoCL,SL:clMoSL,EL:clMoEL}
+    };
+    carryCL = clCL; carrySL = clSL; carryEL = clEL;
+    carryMoCL = clMoCL; carryMoSL = clMoSL; carryMoEL = clMoEL;
+  });
+  return computed;
+}
+
+function fmtVal(val) {
+  const toggleEl = document.getElementById('toggle-round-mode');
+  return (toggleEl && toggleEl.checked) ? Math.round(val) : parseFloat(val.toFixed(2));
+}
+
+// ─── CELL STYLE HELPERS ───────────────────────────────────────────
+function getCellStyle(cellVal) {
+  const cl = leaveColors;
+  if (cellVal === 'P') return { bg:'#f0fdf4', tc:'#16a34a', extra:'' };
+  if (cellVal === 'CL') return { bg:cl.CL.bg, tc:cl.CL.text, extra:'' };
+  if (cellVal === 'CL-half') return { bg:cl.CL.bg, tc:cl.CL.text, extra:'border: 1px dashed '+cl.CL.border };
+  if (cellVal === 'SL') return { bg:cl.SL.bg, tc:cl.SL.text, extra:'' };
+  if (cellVal === 'SL-half') return { bg:cl.SL.bg, tc:cl.SL.text, extra:'border: 1px dashed '+cl.SL.border };
+  if (cellVal === 'EL') return { bg:cl.EL.bg, tc:cl.EL.text, extra:'' };
+  if (cellVal === 'EL-half') return { bg:cl.EL.bg, tc:cl.EL.text, extra:'border: 1px dashed '+cl.EL.border };
+  if (cellVal === 'W') return { bg:'#f1f5f9', tc:'#64748b', extra:'' };
+  if (cellVal === 'H') return { bg:'#f5f3ff', tc:'#6d28d9', extra:'' };
+  return { bg:'#ffffff', tc:'#94a3b8', extra:'' };
+}
+function getCellDisplay(cellVal) {
+  if (cellVal === 'CL-half') return 'CL½';
+  if (cellVal === 'SL-half') return 'SL½';
+  if (cellVal === 'EL-half') return 'EL½';
+  return cellVal || '.';
+}
+
+// ─── MAIN RENDER ──────────────────────────────────────────────────
+function renderApp() {
+  const daysInMonth = getDaysInMonth(currentYearMonth);
+  const [year, month] = currentYearMonth.split('-').map(Number);
+  const filtered = employees.filter(emp => {
+    const ms = emp.name.toLowerCase().includes(searchQuery) || emp.id.toLowerCase().includes(searchQuery);
+    const md = departmentFilter === 'All' || emp.department === departmentFilter;
+    return ms && md;
+  });
+
+  // ── GRID ──
+  const headerRow = document.getElementById('grid-header');
+  if (headerRow) {
+    headerRow.innerHTML = `
+      <th class="sticky left-0 bg-slate-100/90 shadow-[2px_0_5px_rgba(0,0,0,0.02)] z-30 w-52 min-w-[200px] border-r border-slate-200 px-4 py-3 text-[11px] text-slate-700 font-extrabold">Employee</th>
+      <th class="w-14 bg-amber-100/80 border-r border-slate-200 text-center text-[10px] font-bold text-amber-900 py-2">CL Yr</th>
+      <th class="w-14 bg-rose-100/80 border-r border-slate-200 text-center text-[10px] font-bold text-rose-900 py-2">SL Yr</th>
+      <th class="w-14 bg-blue-100/80 border-r border-slate-200 text-center text-[10px] font-bold text-blue-900 py-2">EL Yr</th>
+      <th class="w-14 bg-amber-50/80 border-r border-slate-200 text-center text-[10px] font-bold text-amber-800 py-2">CL Mo</th>
+      <th class="w-14 bg-rose-50/80 border-r border-slate-200 text-center text-[10px] font-bold text-rose-800 py-2">SL Mo</th>
+      <th class="w-14 bg-blue-50/80 border-r border-slate-200 text-center text-[10px] font-bold text-blue-800 py-2">EL Mo</th>
+      <th class="w-14 bg-amber-100/50 border-r border-slate-200 text-center text-[10px] font-bold text-amber-900 py-2">CL Bal</th>
+      <th class="w-14 bg-rose-100/50 border-r border-slate-200 text-center text-[10px] font-bold text-rose-900 py-2">SL Bal</th>
+      <th class="w-14 bg-blue-100/50 border-r border-slate-200 text-center text-[10px] font-bold text-blue-900 py-2">EL Bal</th>
+    `;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dObj = new Date(year, month-1, day);
+      const isWk = dObj.getDay() === 0 || dObj.getDay() === 6;
+      const dl = dObj.toLocaleString('en-US',{weekday:'short'}).charAt(0);
+      headerRow.innerHTML += `<th class="text-center w-8 min-w-[32px] border-r border-slate-200/80 text-[9px] py-1 ${isWk?'bg-slate-200 text-slate-700 font-bold':''}"><div class="font-bold text-slate-700">${day}</div><div class="text-[8px] opacity-70">${dl}</div></th>`;
+    }
+  }
+
+  const gridBody = document.getElementById('grid-body');
+  if (gridBody) {
+    gridBody.innerHTML = '';
+    filtered.forEach(emp => {
+      const calc = computeBalances(emp);
+      const ms = calc[currentYearMonth];
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-50/80 transition-colors border-b border-slate-150 h-[48px]';
+      let html = `
+        <td class="sticky left-0 bg-white shadow-[2px_0_5px_rgba(0,0,0,0.03)] border-r border-slate-200 px-4 py-1.5 z-20 min-w-[200px] h-[48px] sticky-col">
+          <div class="flex items-center gap-2">
+            <div class="flex-grow min-w-0">
+              <div class="font-bold text-slate-800 text-[12px] truncate leading-tight">${emp.name}</div>
+              <div class="text-[9px] text-slate-400 font-semibold truncate mt-0.5">${emp.id} · ${emp.department}</div>
+            </div>
+          </div>
+        </td>
+        <td class="text-center border-r border-slate-200 bg-amber-100/10"><input type="number" step="0.5" min="0" value="${fmtVal(ms.opening.CL)}" onchange="updateEmployeeQuota('${emp.id}','CL',this.value)" class="w-12 text-center bg-transparent focus:bg-white border border-transparent hover:border-slate-200 focus:border-amber-500 focus:outline-none rounded py-0.5 text-xs font-bold text-amber-800"></td>
+        <td class="text-center border-r border-slate-200 bg-rose-100/10"><input type="number" step="0.5" min="0" value="${fmtVal(ms.opening.SL)}" onchange="updateEmployeeQuota('${emp.id}','SL',this.value)" class="w-12 text-center bg-transparent focus:bg-white border border-transparent hover:border-slate-200 focus:border-rose-500 focus:outline-none rounded py-0.5 text-xs font-bold text-rose-800"></td>
+        <td class="text-center border-r border-slate-200 bg-blue-100/10"><input type="number" step="0.5" min="0" value="${fmtVal(ms.opening.EL)}" onchange="updateEmployeeQuota('${emp.id}','EL',this.value)" class="w-12 text-center bg-transparent focus:bg-white border border-transparent hover:border-slate-200 focus:border-blue-500 focus:outline-none rounded py-0.5 text-xs font-bold text-blue-800"></td>
+        <td class="text-center border-r border-slate-200 bg-amber-50 text-xs font-bold ${ms.closingMo.CL<0?'text-red-500':'text-amber-800'}">${fmtVal(ms.closingMo.CL)}</td>
+        <td class="text-center border-r border-slate-200 bg-rose-50/60 text-xs font-bold ${ms.closingMo.SL<0?'text-red-500':'text-rose-800'}">${fmtVal(ms.closingMo.SL)}</td>
+        <td class="text-center border-r border-slate-200 bg-blue-50/60 text-xs font-bold ${ms.closingMo.EL<0?'text-red-500':'text-blue-800'}">${fmtVal(ms.closingMo.EL)}</td>
+        <td class="text-center border-r border-slate-200 bg-amber-100/30 text-[11px] font-bold ${ms.closing.CL<0?'text-red-500':'text-slate-700'}">${fmtVal(ms.closing.CL)}</td>
+        <td class="text-center border-r border-slate-200 bg-rose-100/30 text-[11px] font-bold ${ms.closing.SL<0?'text-red-500':'text-slate-700'}">${fmtVal(ms.closing.SL)}</td>
+        <td class="text-center border-r border-slate-200 bg-blue-100/30 text-[11px] font-bold ${ms.closing.EL<0?'text-red-500':'text-slate-700'}">${fmtVal(ms.closing.EL)}</td>
+      `;
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${currentYearMonth}-${String(day).padStart(2,'0')}`;
+        const dObj = new Date(year, month-1, day);
+        const isWk = dObj.getDay() === 0 || dObj.getDay() === 6;
+        let cellVal = emp.leaves[dateStr] || (isWk ? 'W' : 'P');
+        const cs = getCellStyle(cellVal);
+        const disp = getCellDisplay(cellVal);
+        html += `<td onclick="openCellMenu(event,'${emp.id}','${dateStr}')" class="day-cell cursor-pointer text-center border-r border-slate-150 text-[10px] select-none transition-all font-bold" style="background:${cs.bg};color:${cs.tc};${cs.extra}">${disp}</td>`;
+      }
+      tr.innerHTML = html;
+      gridBody.appendChild(tr);
+    });
+    if (filtered.length === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="50" class="text-center py-16 text-slate-400 text-sm"><i class="fa-solid fa-magnifying-glass mb-3 text-2xl block"></i>No employees match your search criteria.</td>`;
+      gridBody.appendChild(tr);
+    }
+  }
+
+  // ── CARDS ──
+  const cardsContainer = document.getElementById('cards-container');
+  if (cardsContainer) {
+    cardsContainer.innerHTML = '';
+    filtered.forEach(emp => {
+      const calc = computeBalances(emp);
+      const ms = calc[currentYearMonth];
+      let ytdCL=0,ytdSL=0,ytdEL=0;
+      financialMonths.forEach(m => { const s=calc[m]; if(s){ytdCL+=s.taken.CL;ytdSL+=s.taken.SL;ytdEL+=s.taken.EL;} });
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-xl shadow-sm border border-slate-200/60 p-5 flex flex-col justify-between hover:shadow-md hover:border-slate-300 transition-all';
+      card.innerHTML = `
+        <div>
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <h4 class="text-sm font-bold text-slate-800">${emp.name}</h4>
+              <p class="text-[11px] text-slate-400 font-medium">${emp.department} · ${emp.designation}</p>
+            </div>
+            <span class="text-[9px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">${emp.id}</span>
+          </div>
+          <div class="border-t border-b border-slate-100 py-3 my-3 grid grid-cols-3 gap-2 text-center">
+            <div><span class="text-[10px] text-slate-400 block font-semibold">CL</span><span class="text-sm font-extrabold block mt-1" style="color:${leaveColors.CL.text}">${fmtVal(ms.closingMo.CL)}</span><span class="text-[9px] text-slate-400">YTD: ${ytdCL}</span></div>
+            <div><span class="text-[10px] text-slate-400 block font-semibold">SL</span><span class="text-sm font-extrabold block mt-1" style="color:${leaveColors.SL.text}">${fmtVal(ms.closingMo.SL)}</span><span class="text-[9px] text-slate-400">YTD: ${ytdSL}</span></div>
+            <div><span class="text-[10px] text-slate-400 block font-semibold">EL</span><span class="text-sm font-extrabold block mt-1" style="color:${leaveColors.EL.text}">${fmtVal(ms.closingMo.EL)}</span><span class="text-[9px] text-slate-400">YTD: ${ytdEL}</span></div>
+          </div>
+        </div>
+        <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-50">
+          <div class="flex gap-2">
+            <button onclick="openAddEmployeeModal('${emp.id}')" class="text-xs font-bold text-sky-600 hover:text-sky-500"><i class="fa-solid fa-pen-to-square mr-1"></i>Edit</button>
+            <button onclick="openDeleteModal('${emp.id}')" class="text-xs font-bold text-red-500 hover:text-red-400"><i class="fa-solid fa-trash-can mr-1"></i>Delete</button>
+          </div>
+          <button onclick="setActiveTab('grid')" class="text-xs font-bold text-emerald-600 hover:text-emerald-500 flex items-center gap-1">Calendar <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      `;
+      cardsContainer.appendChild(card);
+    });
+    if (filtered.length === 0) {
+      cardsContainer.innerHTML = `<div class="col-span-3 text-center py-20 text-slate-400"><i class="fa-solid fa-magnifying-glass text-3xl mb-3 block"></i>No employees found.</div>`;
+    }
+  }
+
+  // ── DIRECTORY ──
+  const dirBody = document.getElementById('directory-body');
+  if (dirBody) {
+    dirBody.innerHTML = '';
+    const dirFiltered = employees.filter(emp => {
+      const ms = emp.name.toLowerCase().includes(searchQuery) || emp.id.toLowerCase().includes(searchQuery);
+      const md = departmentFilter === 'All' || emp.department === departmentFilter;
+      return ms && md;
+    });
+    dirFiltered.forEach(emp => {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-50 transition-colors';
+      tr.innerHTML = `
+        <td class="px-4 py-3 font-bold text-slate-600 text-[11px]">${emp.id}</td>
+        <td class="px-4 py-3 font-semibold text-slate-800">${emp.name}</td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">${emp.department}</span>
+        </td>
+        <td class="px-4 py-3 text-slate-500 text-[11px]">${emp.designation}</td>
+        <td class="px-4 py-3 text-slate-400 text-[11px]">${emp.email || '—'}</td>
+        <td class="px-4 py-3 text-center"><span class="font-bold text-amber-700">${emp.quotaCL}</span></td>
+        <td class="px-4 py-3 text-center"><span class="font-bold text-rose-700">${emp.quotaSL}</span></td>
+        <td class="px-4 py-3 text-center"><span class="font-bold text-blue-700">${emp.quotaEL}</span></td>
+        <td class="px-4 py-3 text-center">
+          <div class="flex items-center justify-center gap-2">
+            <button onclick="openAddEmployeeModal('${emp.id}')" class="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-600 transition-colors" title="Edit">
+              <i class="fa-solid fa-pen-to-square text-xs"></i>
+            </button>
+            <button onclick="openDeleteModal('${emp.id}')" class="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition-colors" title="Delete">
+              <i class="fa-solid fa-trash-can text-xs"></i>
+            </button>
+          </div>
+        </td>
+      `;
+      dirBody.appendChild(tr);
+    });
+    if (dirFiltered.length === 0) {
+      dirBody.innerHTML = `<tr><td colspan="9" class="text-center py-16 text-slate-400 text-sm"><i class="fa-solid fa-users-slash text-2xl block mb-3"></i>No employees found.</td></tr>`;
+    }
+  }
+}
+
+// ─── CSV EXPORT ───────────────────────────────────────────────────
+function exportToCSV() {
+  let csv = 'Employee Code,Name,Department,Designation,Email,CL Quota,SL Quota,EL Quota\n';
+  employees.forEach(e => {
+    csv += `"${e.id}","${e.name}","${e.department}","${e.designation}","${e.email||''}",${e.quotaCL},${e.quotaSL},${e.quotaEL}\n`;
+  });
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `HempCann_Employees_${currentYearMonth}.csv`;
+  a.click();
+  triggerToast('CSV exported successfully.');
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────
+function triggerToast(message) {
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+  document.getElementById('toast-message').textContent = message;
+  toast.classList.remove('translate-y-20', 'opacity-0');
+  toast.classList.add('translate-y-0', 'opacity-100');
+  setTimeout(() => { toast.classList.remove('translate-y-0','opacity-100'); toast.classList.add('translate-y-20','opacity-0'); }, 3000);
+}
+
+// ─── INITIAL ASYNC DATA SYNC ──────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  // Load data initially so authentication state is ready
+  await loadDataFromServer();
+  
+  const pwdField = document.getElementById('login-password');
+  if (pwdField) pwdField.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+});
+</script>
+</body>
+</html>
